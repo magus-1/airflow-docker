@@ -9,7 +9,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 # Using a DAG decorator to turn a function into a DAG generator
 @dag(
-    dag_id="TP-pipeline",
+    dag_id="TP-pipeline-local",
     schedule_interval=None,
     start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
     catchup=False,
