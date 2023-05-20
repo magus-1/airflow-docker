@@ -11,7 +11,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='DAG-0',
+    dag_id='TEST-0',
     default_args=default_args,
     catchup=False,
     schedule_interval='@once',
