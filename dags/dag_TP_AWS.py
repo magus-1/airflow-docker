@@ -1,5 +1,8 @@
+import datetime
 import pendulum
+import os
 
+import requests
 from airflow.decorators import dag, task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
@@ -62,7 +65,6 @@ def ProcessCSV():
             df.groupby(['advertiser_id']).product_id.value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
-            .reset_index()
         )
         df_out.to_csv(f"s3://{s3_bucket}/ctr", sep=',', header=True)
 
@@ -79,26 +81,40 @@ def ProcessCSV():
             df.groupby(['advertiser_id']).product_id.value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
-            .reset_index()
         )
         df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
     
-    @task
-    def DBWriting():
-        import csv
-        import psycopg2
+    '''
+    # TODO: add support for RDS
+    create_employees_table = PostgresOperator(
+        task_id="create_employees_table",
+        postgres_conn_id="tutorial_pg_conn",
+        sql="""
+            CREATE TABLE IF NOT EXISTS employees (
+                "Serial Number" NUMERIC PRIMARY KEY,
+                "Company Name" TEXT,
+                "Employee Markme" TEXT,
+                "Description" TEXT,
+                "Leave" INTEGER
+            );""",
+    )
 
-        s3_bucket = "magus-udesa-pa-intermediate"
+    create_employees_temp_table = PostgresOperator(
+        task_id="create_employees_temp_table",
+        postgres_conn_id="tutorial_pg_conn",
+        sql="""
+            DROP TABLE IF EXISTS employees_temp;
+            CREATE TABLE employees_temp (
+                "Serial Number" NUMERIC PRIMARY KEY,
+                "Company Name" TEXT,
+                "Employee Markme" TEXT,
+                "Description" TEXT,
+                "Leave" INTEGER
+            );""",
+    )
+    '''
 
-        task = PostgresOperator(
-            task_id="DBWriting",
-            postgres_conn_id="postgres_tp",
-            sql="INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES (?, ?, ?)",
-            params=["advertiser_id", "product_id", "count"],
-            file_to_load=f"s3://{s3_bucket}/topproduct",
-            dag=dag,
-)
-    [FiltrarDatos() >> [TopCTR(), TopProduct()] >> DBWriting()]
+    [FiltrarDatos() >> [TopCTR(), TopProduct()]]
 
 
 dag = ProcessCSV()
