@@ -62,7 +62,7 @@ def ProcessCSV():
             df.groupby(['advertiser_id']).product_id.value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
-            .reset_index()
+            .reset_index(name='count')
         )
         df_out.to_csv(f"s3://{s3_bucket}/ctr", sep=',', header=True)
 
@@ -79,7 +79,7 @@ def ProcessCSV():
             df.groupby(['advertiser_id']).product_id.value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
-            .reset_index()
+            .reset_index(name='count')
         )
         df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
     
