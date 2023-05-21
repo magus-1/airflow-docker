@@ -93,8 +93,8 @@ def ProcessCSV():
         task = PostgresOperator(
             task_id="DBWriting",
             postgres_conn_id="postgres_tp",
-            sql="INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES (?, ?, ?)",
-            params=["advertiser_id", "product_id", "count"],
+            sql="INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES (advertiser_id, product_id, count)",
+            #params=["advertiser_id", "product_id", "count"],
             file_to_load=f"s3://{s3_bucket}/topproduct",
             dag=dag,
 )
