@@ -1,3 +1,3 @@
-FROM apache/airflow:2.6.1-python3.10
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+FROM apache/airflow:2.6.1
+COPY requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt
