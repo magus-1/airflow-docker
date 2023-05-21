@@ -100,7 +100,7 @@ def ProcessCSV():
         
         # Insert data into the table
         for index, row in df.iterrows():
-            insert_query = f"INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES ({row['advrtsier_id']}, {row['product_id']}, {row['count']})"
+            insert_query = f"INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES ({row['advertsier_id']}, {row['product_id']}, {row['count']})"
             cursor.execute(insert_query)
             connection.commit()
         
