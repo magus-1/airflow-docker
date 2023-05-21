@@ -4,6 +4,7 @@ from airflow.decorators import dag, task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
+
 # Using a DAG decorator to turn a function into a DAG generator
 @dag(
     dag_id="TP-pipeline-AWS",
@@ -85,19 +86,28 @@ def ProcessCSV():
     
     @task
     def DBWriting():
-        import csv
-        import psycopg2
+        import pandas as pd
 
+        # Read CSV file
         s3_bucket = "magus-udesa-pa-intermediate"
+        csv_file = f"s3://{s3_bucket}/topproduct"
+        df = pd.read_csv(csv_file)
+        
+        # Establish connection to PostgreSQL
+        postgres_hook = PostgresHook(postgres_conn_id='postgres_TP')
+        connection = postgres_hook.get_conn()
+        cursor = connection.cursor()
+        
+        # Insert data into the table
+        for index, row in df.iterrows():
+            insert_query = f"INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES ({row['advrtsier_id']}, {row['product_id']}, {row['count']})"
+            cursor.execute(insert_query)
+            connection.commit()
+        
+        # Close the database connection
+        cursor.close()
+        connection.close()
 
-        task = PostgresOperator(
-            task_id="DBWriting",
-            postgres_conn_id="postgres_tp",
-            sql="INSERT INTO TopProduct (advertiser_id, product_id, topProduct) VALUES (advertiser_id, product_id, count)",
-            #params=["advertiser_id", "product_id", "count"],
-            file_to_load=f"s3://{s3_bucket}/topproduct",
-            dag=dag,
-)
     [FiltrarDatos() >> [TopCTR(), TopProduct()] >> DBWriting()]
 
 
