@@ -85,7 +85,31 @@ def ProcessCSV():
         df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
     
     @task
-    def DBWriting():
+    def DBWritingTopCTR():
+        import pandas as pd
+
+        # Read CSV file
+        s3_bucket = "magus-udesa-pa-intermediate"
+        csv_file = f"s3://{s3_bucket}/ctr"
+        df = pd.read_csv(csv_file)
+        
+        # Establish connection to PostgreSQL
+        postgres_hook = PostgresHook(postgres_conn_id='postgres_TP')
+        connection = postgres_hook.get_conn()
+        cursor = connection.cursor()
+        
+        # Insert data into the table
+        for index, row in df.iterrows():
+            insert_query = f"INSERT INTO topproduct (advertiser_id, product_id, ctr) VALUES (\'{row['advertiser_id']}\', \'{row['product_id']}\', {row['count']})"
+            cursor.execute(insert_query)
+            connection.commit()
+        
+        # Close the database connection
+        cursor.close()
+        connection.close()
+
+    @task
+    def DBWritingTopProduct():
         import pandas as pd
 
         # Read CSV file
@@ -108,7 +132,7 @@ def ProcessCSV():
         cursor.close()
         connection.close()
 
-    [FiltrarDatos() >> [TopCTR(), TopProduct()] >> DBWriting()]
+    [FiltrarDatos() >> [TopCTR(), TopProduct()] >> [DBWritingTopCTR(), DBWritingTopProduct()]]
 
 
 dag = ProcessCSV()
