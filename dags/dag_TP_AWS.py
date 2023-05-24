@@ -145,7 +145,7 @@ def ProcessCSV():
         cursor.close()
         connection.close()
 
-    FiltrarDatos() >> [TopCTR(), TopProduct()] >> [DBWritingTopCTR(), DBWritingTopProduct()]
+    FiltrarDatos() >> [[TopCTR(), TopProduct()] >> [DBWritingTopCTR(), DBWritingTopProduct()]]
 
 
 dag = ProcessCSV()
