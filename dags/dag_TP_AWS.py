@@ -67,11 +67,8 @@ def ProcessCSV():
             .nlargest(20)
             .reset_index(name='count')
         )
-        print(df.head())
-        print("---------------------------------")
-        print(df_out.head(5))
+
         df_out.to_csv(f"s3://{s3_bucket}/ctr", sep=',', header=True)
-        df_out.to_csv(f"ctr.csv", sep=',', header=True)
 
     @task
     def TopProduct():
@@ -90,8 +87,7 @@ def ProcessCSV():
             .nlargest(20)
             .reset_index(name='count')
         )
-        #df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
-        df_out.to_csv(f"topproduct.csv", sep=',', header=True)
+        df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
     
     @task
     def DBWriting():
