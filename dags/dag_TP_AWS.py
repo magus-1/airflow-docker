@@ -94,7 +94,7 @@ def ProcessCSV():
         df_out.to_csv(f"topproduct.csv", sep=',', header=True)
     
     @task
-    def DBWritingTopCTR():
+    def DBWriting():
         import pandas as pd
 
         # Read CSV file
@@ -119,10 +119,6 @@ def ProcessCSV():
         cursor.close()
         connection.close()
 
-    @task
-    def DBWritingTopProduct():
-        import pandas as pd
-
         # Read CSV file
         s3_bucket = "magus-udesa-pa-intermediate"
         csv_file = f"s3://{s3_bucket}/topproduct"
@@ -145,7 +141,7 @@ def ProcessCSV():
         cursor.close()
         connection.close()
 
-    [FiltrarDatos() >> [TopCTR(), TopProduct()]] >> [DBWritingTopCTR(), DBWritingTopProduct()]
+    [FiltrarDatos() >> [TopCTR(), TopProduct()] >> DBWriting()]
 
 
 dag = ProcessCSV()
