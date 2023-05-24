@@ -60,12 +60,18 @@ def ProcessCSV():
         df = df[df['type']=='click']
 
         df_out = (
-            df.groupby(['advertiser_id']).product_id.value_counts()
+            df.drop(df.columns[0], axis=1)
+            .groupby(['advertiser_id','product_id', 'date'])
+            .value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
             .reset_index(name='count')
         )
+        print(df.head())
+        print("---------------------------------")
+        print(df_out.head(5))
         df_out.to_csv(f"s3://{s3_bucket}/ctr", sep=',', header=True)
+        df_out.to_csv(f"ctr.csv", sep=',', header=True)
 
     @task
     def TopProduct():
@@ -77,12 +83,15 @@ def ProcessCSV():
         df = pd.read_csv(f"s3://{s3_bucket}/valid_products",header=0)
 
         df_out = (
-            df.groupby(['advertiser_id']).product_id.value_counts()
+            df.drop(df.columns[0], axis=1)
+            .groupby(['advertiser_id','product_id', 'date'])
+            .value_counts()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
             .reset_index(name='count')
         )
-        df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
+        #df_out.to_csv(f"s3://{s3_bucket}/topproduct", sep=',', header=True)
+        df_out.to_csv(f"topproduct.csv", sep=',', header=True)
     
     @task
     def DBWritingTopCTR():
@@ -100,7 +109,9 @@ def ProcessCSV():
         
         # Insert data into the table
         for index, row in df.iterrows():
-            insert_query = f"INSERT INTO topctr (advertiser_id, product_id, ctr) VALUES (\'{row['advertiser_id']}\', \'{row['product_id']}\', {row['count']})"
+            insert_query = f" \
+            INSERT INTO topctr (advertiser_id, product_id, date, ctr) \
+            VALUES (\'{row['advertiser_id']}\', \'{row['product_id']}\', \'{row['date']}\', {row['count']})"
             cursor.execute(insert_query)
             connection.commit()
         
@@ -124,7 +135,9 @@ def ProcessCSV():
         
         # Insert data into the table
         for index, row in df.iterrows():
-            insert_query = f"INSERT INTO topproduct (advertiser_id, product_id, top_product) VALUES (\'{row['advertiser_id']}\', \'{row['product_id']}\', {row['count']})"
+            insert_query = f" \
+            INSERT INTO topproduct (advertiser_id, product_id, date, top_product) \
+            VALUES (\'{row['advertiser_id']}\', \'{row['product_id']}\', \'{row['date']}\', {row['count']})"
             cursor.execute(insert_query)
             connection.commit()
         
