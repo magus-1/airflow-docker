@@ -62,7 +62,7 @@ def ProcessCSV():
         df_out = (
             df.drop(df.columns[0], axis=1)
             .groupby(['advertiser_id','product_id', 'date'])
-            .value_counts()
+            .size()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
             .reset_index(name='count')
@@ -82,7 +82,7 @@ def ProcessCSV():
         df_out = (
             df.drop(df.columns[0], axis=1)
             .groupby(['advertiser_id','product_id', 'date'])
-            .value_counts()
+            .size()
             .groupby(level=0, group_keys=False)
             .nlargest(20)
             .reset_index(name='count')
